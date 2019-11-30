@@ -3,7 +3,7 @@ package pl.poznan.put.oculus.oculuscoreservice.model
 import io.swagger.annotations.ApiModel
 import java.time.Instant
 
-@ApiModel
+@ApiModel(description = "entity of inference job")
 data class Job (
         val id: String?,
         val doctor: String,
@@ -15,4 +15,5 @@ data class Job (
         val updated: Instant
 )
 
+@ApiModel(description = "status of inference job")
 enum class JobStatus { NEW, IN_PROGRESS, DONE }
