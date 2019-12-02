@@ -1,6 +1,7 @@
 package pl.poznan.put.oculus.oculuscoreservice.rest
 
 import io.swagger.annotations.ApiOperation
+import io.swagger.annotations.ApiParam
 import io.swagger.annotations.ApiResponse
 import io.swagger.annotations.ApiResponses
 import org.springframework.hateoas.IanaLinkRelations
@@ -35,7 +36,9 @@ class JobsController (
         ApiResponse(code = 200, message = "job found"),
         ApiResponse(code = 204, message = "no job with given id")
     ])
-    fun getJob(@PathVariable id: String): ResponseEntity<JobModel> {
+    fun getJob(
+            @PathVariable @ApiParam(required = true) id: String
+    ): ResponseEntity<JobModel> {
         val job = service.getJob(id)
         return if (job != null) ResponseEntity.ok(job.toModel())
         else ResponseEntity.noContent().build()
@@ -46,7 +49,9 @@ class JobsController (
     @ApiResponses(value = [
         ApiResponse(code = 201, message = "job created")
     ])
-    fun postJob(@RequestBody request: JobRequest): ResponseEntity<JobModel> {
+    fun postJob(
+            @RequestBody @ApiParam request: JobRequest
+    ): ResponseEntity<JobModel> {
         val now = Instant.now()
         val created = service.createJob(Job(
                 null,
@@ -68,7 +73,9 @@ class JobsController (
     @ApiResponses(value = [
         ApiResponse(code = 200, message = "update ok")
     ])
-    fun updateStatus(@RequestBody request: JobStatusUpdateRequest): ResponseEntity<JobModel> {
+    fun updateStatus(
+            @RequestBody @ApiParam request: JobStatusUpdateRequest
+    ): ResponseEntity<JobModel> {
         val updated = service.updateJobStatus(request.jobId, request.newStatus)
         return ResponseEntity.ok(updated.toModel())
     }
