@@ -4,10 +4,12 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
+import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
 import pl.poznan.put.oculus.boot.exception.OculusException
 import pl.poznan.put.oculus.oculuscoreservice.model.Job
+import pl.poznan.put.oculus.oculuscoreservice.model.JobEvent
 import pl.poznan.put.oculus.oculuscoreservice.model.JobStatus
 import pl.poznan.put.oculus.oculuscoreservice.repository.JobsRepository
 
@@ -16,13 +18,19 @@ class JobsService (
         private val repository: JobsRepository,
         private val restTemplate: RestTemplate,
         @Value("\${oculus.facts-service}")
-        private val factsServiceHost: String
+        private val factsServiceHost: String,
+        private val kafkaTemplate: KafkaTemplate<String, JobEvent>
 ) {
     fun createJob(job: Job) = repository.insert(job)
             .also { logger.info("created new job ${it.id}") }
             .apply { generateFacts() }
 
     private fun Job.generateFacts() {
+        generateFactsFromMetrics()
+        sendNewJobEvent()
+    }
+
+    private fun Job.generateFactsFromMetrics() {
         restTemplate.postForEntity(
                 "http://$factsServiceHost/facts/fromMetrics",
                 FactsFromMetricsRequest(patientMetrics, id!!),
@@ -35,6 +43,11 @@ class JobsService (
         }
 
         logger.info("generated metrics facts for job $id")
+    }
+
+    private fun Job.sendNewJobEvent() {
+        kafkaTemplate.send("jobs", JobEvent(JobStatus.NEW, id!!))
+        logger.info("sent new job event for job $id")
     }
 
     fun getJob(id: String) = repository.findByIdOrNull(id)

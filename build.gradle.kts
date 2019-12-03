@@ -22,6 +22,7 @@ dependencies {
 
     // spring
     implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
+    implementation("org.springframework.kafka:spring-kafka:2.3.3.RELEASE")
 
     // test
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
